@@ -1,0 +1,23 @@
+[Unit]
+Description=Zima Remote Agent Service (Remote WOL via ZeroTier)
+After=network.target zero-tier-one.service
+Wants=zero-tier-one.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/zima-remote-agent
+Restart=on-failure
+RestartSec=5
+
+# Systemd Hardening Security Flags
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

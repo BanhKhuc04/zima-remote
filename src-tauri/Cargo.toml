@@ -1,0 +1,28 @@
+[package]
+name = "zima-remote"
+version = "3.0.0"
+description = "Zima Remote 3.0.0 FINAL STABLE by VanhKhuc"
+authors = ["VanhKhuc"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.1", features = ["tray-icon"] }
+tauri-plugin-opener = "2.0"
+tauri-plugin-autostart = "2.0"
+tauri-plugin-single-instance = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.38", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+dirs-next = "2.0"
+chrono = { version = "0.4", features = ["serde"] }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser", "processthreadsapi"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

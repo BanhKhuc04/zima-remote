@@ -1,0 +1,132 @@
+export const translations = {
+  vi: {
+    appTitle: 'ZIMA REMOTE',
+    subtitle: 'Điều khiển Máy chủ Cục bộ',
+    serverName: 'Tên máy chủ',
+    hostname: 'Hostname',
+    ipAddress: 'Địa chỉ IP',
+    macAddress: 'Địa chỉ MAC',
+    broadcastAddress: 'Broadcast Address',
+    wolPort: 'Wake-on-LAN Port',
+    dashboardUrl: 'Dashboard URL',
+    sshUser: 'Tài khoản SSH',
+    sshPort: 'Cổng SSH',
+    sshKeyPath: 'Đường dẫn SSH Key',
+    statusInterval: 'Tần suất kiểm tra (giây)',
+    startWithWindows: 'Khởi động cùng Windows',
+    minimizeToTray: 'Thu nhỏ xuống System Tray khi đóng',
+    language: 'Ngôn ngữ',
+
+    // States
+    stateOnline: 'ĐANG HOẠT ĐỘNG',
+    stateOffline: 'NGOẠI TUYẾN',
+    stateChecking: 'ĐANG KIỂM TRA...',
+    stateWakingUp: 'ĐANG BẬT MÁY...',
+    stateShuttingDown: 'ĐANG TẮT NGUỒN...',
+    stateRestarting: 'ĐANG KHỞI ĐỘNG LẠI...',
+    stateError: 'LỖI KẾT NỐI',
+
+    // Buttons & Actions
+    btnWake: 'BẬT MÁY (WOL)',
+    btnShutdown: 'TẮT NGUỒN',
+    btnRestart: 'KHỞI ĐỘNG LẠI',
+    btnOpenDashboard: 'MỞ DASHBOARD ZIMAOS',
+    btnSettings: 'Cài đặt',
+    btnSave: 'Lưu Cài Đặt',
+    btnCancel: 'Hủy',
+    btnTestConnection: 'Kiểm tra Kết Nối',
+    btnTestWake: 'Gửi Thử WOL Packet',
+    btnClose: 'Đóng',
+
+    // Confirmations
+    confirmShutdownTitle: 'Xác Nhận Tắt Nguồn Server',
+    confirmShutdownMessage: 'Bạn có chắc chắn muốn tắt máy chủ Home Server (ZimaOS) qua lệnh SSH không?',
+    confirmRestartTitle: 'Xác Nhận Khởi Động Lại',
+    confirmRestartMessage: 'Bạn có chắc chắn muốn khởi động lại máy chủ ZimaOS không? Server sẽ ngắt kết nối tạm thời.',
+    confirmActionBtn: 'Xác Nhận',
+
+    // Details
+    latency: 'Độ trễ',
+    lastChecked: 'Kiểm tra lúc',
+    uptime: 'Thời gian hoạt động',
+    connectionSecured: 'Kết nối mạng nội bộ LAN an toàn (No Cloud)',
+    version: 'Phiên bản 1.0.0',
+
+    // Toast Messages
+    magicPacketSent: 'Đã gửi Magic Packet tới máy chủ thành công!',
+    wakingUpWaiting: 'Đang gửi tín hiệu bật máy, vui lòng chờ server khởi động (tối đa 90s)...',
+    serverNowOnline: 'Máy chủ đã trực tuyến (ONLINE)!',
+    serverWakeTimeout: 'Không thể xác nhận máy chủ đã bật sau 90 giây.',
+    shutdownSent: 'Đã gửi lệnh tắt nguồn tới ZimaOS thành công.',
+    restartSent: 'Đã gửi lệnh khởi động lại. Đang theo dõi quá trình restart...',
+    sshError: 'Lỗi khi kết nối hoặc thực thi qua SSH: ',
+    settingsSaved: 'Đã lưu cấu hình cài đặt!',
+    connectionSuccess: 'Kiểm tra kết nối HTTP/TCP tới server THÀNH CÔNG!',
+    connectionFailed: 'Không thể kết nối tới server (TCP/HTTP timeout).',
+  },
+  en: {
+    appTitle: 'ZIMA REMOTE',
+    subtitle: 'Local Server Control',
+    serverName: 'Server Name',
+    hostname: 'Hostname',
+    ipAddress: 'IP Address',
+    macAddress: 'MAC Address',
+    broadcastAddress: 'Broadcast Address',
+    wolPort: 'Wake-on-LAN Port',
+    dashboardUrl: 'Dashboard URL',
+    sshUser: 'SSH User',
+    sshPort: 'SSH Port',
+    sshKeyPath: 'SSH Key Path',
+    statusInterval: 'Check Interval (sec)',
+    startWithWindows: 'Start with Windows',
+    minimizeToTray: 'Minimize to System Tray on close',
+    language: 'Language',
+
+    // States
+    stateOnline: 'ONLINE',
+    stateOffline: 'OFFLINE',
+    stateChecking: 'CHECKING...',
+    stateWakingUp: 'WAKING UP...',
+    stateShuttingDown: 'SHUTTING DOWN...',
+    stateRestarting: 'RESTARTING...',
+    stateError: 'CONNECTION ERROR',
+
+    // Buttons & Actions
+    btnWake: 'WAKE ON LAN',
+    btnShutdown: 'POWER OFF',
+    btnRestart: 'RESTART',
+    btnOpenDashboard: 'OPEN ZIMAOS DASHBOARD',
+    btnSettings: 'Settings',
+    btnSave: 'Save Settings',
+    btnCancel: 'Cancel',
+    btnTestConnection: 'Test Connection',
+    btnTestWake: 'Test Wake Packet',
+    btnClose: 'Close',
+
+    // Confirmations
+    confirmShutdownTitle: 'Confirm Power Off',
+    confirmShutdownMessage: 'Are you sure you want to shut down Home Server (ZimaOS) via SSH?',
+    confirmRestartTitle: 'Confirm Restart',
+    confirmRestartMessage: 'Are you sure you want to restart ZimaOS? Connection will temporarily disconnect.',
+    confirmActionBtn: 'Confirm',
+
+    // Details
+    latency: 'Latency',
+    lastChecked: 'Last checked',
+    uptime: 'Uptime',
+    connectionSecured: 'Connection secured locally (No Cloud Required)',
+    version: 'Version 1.0.0',
+
+    // Toast Messages
+    magicPacketSent: 'Magic Packet sent successfully!',
+    wakingUpWaiting: 'Wake signal sent. Waiting for server to boot (up to 90s)...',
+    serverNowOnline: 'Server is now ONLINE!',
+    serverWakeTimeout: 'Server did not respond within 90 seconds.',
+    shutdownSent: 'Shutdown command accepted by ZimaOS.',
+    restartSent: 'Restart command accepted. Monitoring reboot progress...',
+    sshError: 'SSH connection or execution failed: ',
+    settingsSaved: 'Settings saved successfully!',
+    connectionSuccess: 'HTTP/TCP connection test to server SUCCESSFUL!',
+    connectionFailed: 'Failed to connect to server (TCP/HTTP timeout).',
+  }
+};
