@@ -55,7 +55,7 @@ impl Default for AppConfig {
             dashboard_url: "".to_string(),
             ssh_user: "".to_string(),
             ssh_port: 22,
-            ssh_key_path: r"C:\Users\khucv\.ssh\zima_remote".to_string(),
+            ssh_key_path: "".to_string(),
             status_interval_seconds: 5,
             start_with_windows: true,
             minimize_to_tray: true,
