@@ -419,6 +419,9 @@ void setup() {
   Serial.begin(115200);
   delay(100);
 
+  // Preload the inactive latch before switching GPIO to OUTPUT to reduce
+  // the chance of an active-low relay clicking during ESP boot.
+  digitalWrite(RELAY_PIN, relayLevel(false));
   pinMode(RELAY_PIN, OUTPUT);
   relaySet(false);
 
