@@ -1,15 +1,11 @@
-export type ServerState = 
-  | 'ONLINE' 
-  | 'OFFLINE' 
-  | 'CHECKING' 
-  | 'WAKING_UP' 
-  | 'SHUTTING_DOWN' 
-  | 'RESTARTING' 
+export type ServerState =
+  | 'ONLINE'
+  | 'OFFLINE'
+  | 'CHECKING'
   | 'ERROR';
 
 export type ConnectionMode = 'AUTO' | 'LOCAL' | 'REMOTE';
 export type ActiveMode = 'LOCAL' | 'REMOTE' | 'UNREACHABLE';
-
 export type Language = 'vi' | 'en';
 
 export interface AppConfig {
@@ -27,8 +23,6 @@ export interface AppConfig {
   startWithWindows: boolean;
   minimizeToTray: boolean;
   language: Language;
-
-  // Remote Access & ZeroTier via Orange Pi Agent
   connectionMode: ConnectionMode;
   remoteEnabled: boolean;
   agentUrl: string;
@@ -43,6 +37,15 @@ export interface ServerStatusInfo {
   latencyMs: number | null;
   lastChecked: string;
   uptime: string | null;
+  uptimeSeconds?: number | null;
+  hostname?: string | null;
+  cpuTempC?: number | null;
+  load1?: number | null;
+  memoryTotalMb?: number | null;
+  memoryUsedMb?: number | null;
+  diskTotalGb?: number | null;
+  diskUsedGb?: number | null;
+  ipAddresses?: string[];
   errorMessage?: string;
 }
 
@@ -67,9 +70,6 @@ export interface DiagnosticReport {
 
 export interface ValidationErrors {
   ipAddress?: string;
-  macAddress?: string;
-  wolPort?: string;
   sshPort?: string;
-  sshKeyPath?: string;
   agentUrl?: string;
 }
