@@ -2,6 +2,9 @@ export type ServerState =
   | 'ONLINE'
   | 'OFFLINE'
   | 'CHECKING'
+  | 'WAKING_UP'
+  | 'SHUTTING_DOWN'
+  | 'RESTARTING'
   | 'ERROR';
 
 export type ConnectionMode = 'AUTO' | 'LOCAL' | 'REMOTE';
