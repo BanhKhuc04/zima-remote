@@ -135,7 +135,7 @@ pub fn show_and_activate_popup(window: &WebviewWindow) {
     let _ = window.emit("popup-opening", ());
 
     let window_clone1 = window.clone();
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         // Secondary focus call after 120ms to compensate for Windows Explorer closing hidden-icons panel
         tokio::time::sleep(Duration::from_millis(120)).await;
         bring_to_foreground_win32(&window_clone1);
@@ -143,7 +143,7 @@ pub fn show_and_activate_popup(window: &WebviewWindow) {
     });
 
     let window_clone2 = window.clone();
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(400)).await;
         if FLYOUT_STATE.load(Ordering::SeqCst) == STATE_SHOWING {
             FLYOUT_STATE.store(STATE_VISIBLE, Ordering::SeqCst);
