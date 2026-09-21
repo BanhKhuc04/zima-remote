@@ -1,87 +1,74 @@
-# ZIMA REMOTE - Windows Desktop Application
+# Zima Remote v4
 
-**ZIMA REMOTE** là ứng dụng desktop Windows (x64) cao cấp, tối giản và hiện đại dùng để điều khiển máy chủ **ZimaOS** trong mạng LAN.
+Zima Remote v4 is a lightweight remote status and power-management stack for a home Linux PC.
 
-Ứng dụng được xây dựng trên công nghệ **Tauri v2**, **React**, **TypeScript**, **Vite** và **Rust backend**, đảm bảo dung lượng siêu nhẹ, khởi động cực nhanh và bảo mật an toàn.
+## Architecture
 
----
+- **ESP8266 + relay**: always-on physical power controller.
+- **Discord**: command/status channel.
+- **Linux Agent**: telemetry and graceful system actions.
+- **Windows Tauri app**: status-only desktop client.
+- **Tailscale**: recommended private remote path from laptop to Linux.
 
-## 🌟 Tính năng chính
+The desktop app no longer performs Wake-on-LAN, shutdown, or reboot. All power operations are intentionally isolated to the ESP8266/Discord controller.
 
-1. **Bật máy qua Wake-on-LAN (WOL)**: Gửi Magic Packet chuẩn qua UDP broadcast port 9.
-2. **Tắt nguồn máy chủ (Power Off)**: Thực thi lệnh an toàn qua SSH (`sudo -n /usr/bin/systemctl poweroff`).
-3. **Khởi động lại (Restart)**: Thực thi lệnh qua SSH (`sudo -n /usr/bin/systemctl reboot`).
-4. **Theo dõi trạng thái thời gian thực**: Kiểm tra định kỳ TCP/HTTP port 80 & SSH port 22, đo độ trễ (latency ms) và thời gian hoạt động (uptime).
-5. **Mở Dashboard ZimaOS**: Truy cập nhanh vào giao diện web quản trị `http://192.168.0.110`.
-6. **Chạy nền System Tray**: Menu khay hệ thống hỗ trợ thao tác nhanh và thu nhỏ ứng dụng khi đóng.
-7. **Cài đặt linh hoạt (Settings)**: Tùy chỉnh thông tin server, SSH key path, tần suất kiểm tra, ngôn ngữ (Tiếng Việt / English).
+## Discord commands
 
----
+Default prefix: `!server`
 
-## 🔒 An toàn & Bảo mật
+- `!server status`
+- `!server on`
+- `!server off`
+- `!server restart`
+- `!server forceoff`
+- `!server help`
 
-- **Không hard-code mật khẩu hoặc private key**: Không đóng gói private key hay secret vào mã nguồn hoặc installer.
-- **Không có cửa sổ terminal**: Thực thi lệnh SSH chạy ẩn hoàn toàn dưới nền (`CREATE_NO_WINDOW`), không hiển thị cửa sổ CMD hay PowerShell.
-- **Giới hạn quyền sudo**: Chỉ thực thi đúng 2 lệnh `systemctl poweroff` và `systemctl reboot`.
-- **Mạng LAN nội bộ**: Hoạt động trực tiếp trong LAN, không qua bất kỳ máy chủ cloud trung gian nào.
+## Linux Agent
 
----
+Endpoints:
 
-## ⚙️ Cấu hình mặc định
+- `GET /v1/health`
+- `GET /v1/status`
+- `GET /v1/server/status` (compatibility alias)
+- `POST /v1/system/poweroff` (Bearer token)
+- `POST /v1/system/reboot` (Bearer token)
 
-- **Server Name**: `Home Server`
-- **Hostname**: `ZimaOS`
-- **IP Address**: `192.168.0.110`
-- **Dashboard**: `http://192.168.0.110`
-- **Broadcast Address**: `192.168.0.255`
-- **WOL Port**: `9`
-- **MAC Address**: `fc:aa:14:6a:4c:bb`
-- **SSH Port**: `22`
-- **SSH User**: `vanhkhuc`
-- **SSH Private Key Path**: `C:\Users\khucv\.ssh\zima_remote`
+Telemetry includes hostname, uptime, CPU temperature when available, load, RAM, disk usage, and IP addresses.
 
-*Cấu hình được lưu tự động tại `%APPDATA%\ZimaRemote\config.json`.*
+## ESP8266
 
----
+Firmware:
 
-## 🛠️ Hướng dẫn Chạy Development
+`esp8266/zima_remote_esp8266.ino`
 
-### Yêu cầu môi trường:
-- **Windows 10 / 11 x64**
-- **Node.js** v18+ & **npm**
-- **Rust toolchain** (`rustc` & `cargo` 1.75+)
-- Visual Studio C++ Build Tools (hoặc Windows SDK)
+Create your local secret config:
 
-### Các bước chạy:
-```bash
-# 1. Cài đặt các gói phụ thuộc frontend
-npm install
+`esp8266/config.example.h -> esp8266/config.h`
 
-# 2. Khởi chạy ứng dụng ở chế độ Development (mở cửa sổ app với Hot-Reload)
-npm run tauri dev
-```
+`config.h` is ignored by Git.
 
----
+## Linux install
 
-## 📦 Hướng dẫn Build Production & Đóng gói Installer
-
-Để đóng gói ứng dụng thành file cài đặt Windows `.exe` hoặc `.msi`:
+On Debian:
 
 ```bash
-# Thực hiện build toàn bộ React frontend và Rust release binary
-npm run tauri build
+git clone https://github.com/BanhKhuc04/zima-remote.git
+cd zima-remote
+git checkout feature/esp8266-discord-controller
+chmod +x scripts/install-linux-agent.sh
+./scripts/install-linux-agent.sh
 ```
 
-Sau khi build hoàn tất, file cài đặt sẽ được tạo tại:
-- **NSIS Setup Exe**: `src-tauri/target/release/bundle/nsis/ZimaRemote_1.0.0_x64-setup.exe`
-- **MSI Installer**: `src-tauri/target/release/bundle/msi/ZimaRemote_1.0.0_x64_en-US.msi`
+## Full setup
 
-### Đặc điểm bộ cài đặt:
-- Tạo shortcut tự động trong **Start Menu**.
-- Hỗ trợ gỡ cài đặt sạch sẽ từ **Windows Settings > Apps**.
-- Không đòi hỏi quyền Administrator cho các thao tác thông thường.
+See:
 
----
+**SETUP_V4_ESP8266_LINUX_DISCORD.md**
 
-## 📄 Giấy phép & Thương hiệu
-Sản phẩm được thiết kế độc quyền cho hệ sinh thái máy chủ ZimaOS.
+It covers relay wiring, Discord bot setup, ESP8266 flashing, Debian minimal installation, Tailscale, Linux Agent installation, desktop configuration, commands, and troubleshooting.
+
+## Safety
+
+Use the relay as a **dry-contact replacement for the motherboard POWER SW button**.
+
+Do **not** use this project to switch mains voltage directly.
