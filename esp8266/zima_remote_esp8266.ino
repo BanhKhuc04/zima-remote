@@ -15,6 +15,8 @@ unsigned long lastTempAlert = 0;
 String lastDiscordMessageId = "";
 bool lastKnownServerOnline = false;
 bool haveServerState = false;
+bool bootRequested = false;
+unsigned long bootRequestedAt = 0;
 
 struct ServerStatus {
   bool reachable = false;
@@ -130,6 +132,21 @@ bool linuxGetStatus(ServerStatus& out) {
   return true;
 }
 
+bool linuxTcpReachable() {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
+  WiFiClient client;
+  bool connected = client.connect(LINUX_LAN_IP, LINUX_SSH_PORT, 900);
+  if (connected) client.stop();
+  return connected;
+}
+
+bool pcProbablyOnline() {
+  ServerStatus status;
+  if (linuxGetStatus(status)) return true;
+  return linuxTcpReachable();
+}
+
 bool linuxPostAction(const String& action, String& responseText) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
@@ -172,7 +189,12 @@ String makeStatusMessage() {
   msg += " | uptime " + formatUptime(millis() / 1000UL) + "\n";
 
   if (!reachable) {
-    msg += "Linux PC: **offline / agent unreachable**";
+    if (linuxTcpReachable()) {
+      msg += "Linux PC: **reachable**, but telemetry agent is unavailable\n";
+      msg += "SSH port responds; temperature/RAM/disk telemetry is unavailable.";
+    } else {
+      msg += "Linux PC: **offline / unreachable**";
+    }
     return msg;
   }
 
@@ -213,14 +235,15 @@ void handleDiscordCommand(const String& content) {
   }
 
   if (suffix == "on") {
-    ServerStatus status;
-    if (linuxGetStatus(status)) {
-      discordSendMessage("Linux PC is already online.");
+    if (pcProbablyOnline()) {
+      discordSendMessage("Linux PC appears to be already online. Power pulse cancelled.");
       return;
     }
 
     discordSendMessage("Power button pulse sent. Waiting for Linux...");
     pulsePowerButton(POWER_BUTTON_PULSE_MS);
+    bootRequested = true;
+    bootRequestedAt = millis();
     return;
   }
 
@@ -320,7 +343,8 @@ void pollDiscord() {
 
 void monitorServer() {
   ServerStatus status;
-  bool online = linuxGetStatus(status);
+  bool agentOnline = linuxGetStatus(status);
+  bool online = agentOnline || linuxTcpReachable();
 
   if (!haveServerState) {
     haveServerState = true;
@@ -330,7 +354,16 @@ void monitorServer() {
     discordSendMessage(online ? "Linux PC is now **ONLINE**." : "Linux PC is now **OFFLINE**.");
   }
 
-  if (online && !isnan(status.cpuTempC) && status.cpuTempC >= TEMP_ALERT_C) {
+  if (bootRequested) {
+    if (online) {
+      bootRequested = false;
+    } else if (millis() - bootRequestedAt >= SERVER_BOOT_TIMEOUT_MS) {
+      bootRequested = false;
+      discordSendMessage("Boot timeout: Linux PC did not become reachable after the power pulse.");
+    }
+  }
+
+  if (agentOnline && !isnan(status.cpuTempC) && status.cpuTempC >= TEMP_ALERT_C) {
     unsigned long now = millis();
     if (lastTempAlert == 0 || now - lastTempAlert > 30UL * 60UL * 1000UL) {
       lastTempAlert = now;
