@@ -278,32 +278,44 @@ void handleDiscordCommand(const String& content) {
 void pollDiscord() {
   int code = 0;
   String body;
-  String path = "/channels/" + String(DISCORD_CHANNEL_ID) + "/messages?limit=5";
+
+  // On first boot, snapshot the newest message and execute nothing from history.
+  if (lastDiscordMessageId.length() == 0) {
+    String bootstrapPath = "/channels/" + String(DISCORD_CHANNEL_ID) + "/messages?limit=1";
+    if (!discordRequest("GET", bootstrapPath, "", code, body) || code != 200) return;
+
+    DynamicJsonDocument bootstrapDoc(2048);
+    if (deserializeJson(bootstrapDoc, body) || !bootstrapDoc.is<JsonArray>()) return;
+
+    JsonArray bootstrapMessages = bootstrapDoc.as<JsonArray>();
+    if (bootstrapMessages.size() > 0) {
+      lastDiscordMessageId = String((const char*)(bootstrapMessages[0]["id"] | ""));
+    }
+    return;
+  }
+
+  String path = "/channels/" + String(DISCORD_CHANNEL_ID)
+    + "/messages?after=" + lastDiscordMessageId + "&limit=10";
 
   if (!discordRequest("GET", path, "", code, body) || code != 200) return;
 
-  DynamicJsonDocument doc(8192);
-  if (deserializeJson(doc, body)) return;
-  if (!doc.is<JsonArray>()) return;
+  DynamicJsonDocument doc(12288);
+  if (deserializeJson(doc, body) || !doc.is<JsonArray>()) return;
 
   JsonArray messages = doc.as<JsonArray>();
+  if (messages.size() == 0) return;
+
+  // Discord returns newest first. Execute oldest-to-newest so commands stay ordered.
   for (int i = (int)messages.size() - 1; i >= 0; --i) {
     JsonObject message = messages[i];
-    String id = String((const char*)(message["id"] | ""));
-    if (id.length() == 0) continue;
-
-    if (lastDiscordMessageId.length() == 0) {
-      lastDiscordMessageId = id;
-      continue;
-    }
-    if (id == lastDiscordMessageId) continue;
 
     if (isAllowedAuthor(message)) {
       String content = String((const char*)(message["content"] | ""));
       handleDiscordCommand(content);
     }
-    lastDiscordMessageId = id;
   }
+
+  lastDiscordMessageId = String((const char*)(messages[0]["id"] | lastDiscordMessageId.c_str()));
 }
 
 void monitorServer() {
