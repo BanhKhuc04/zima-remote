@@ -22,6 +22,11 @@
 #define LINUX_AGENT_URL "http://192.168.1.50:8090"
 #define LINUX_AGENT_TOKEN "CHANGE_ME_TO_THE_SAME_AGENT_TOKEN"
 
+// Fallback reachability check. This prevents a short POWER SW pulse when the
+// PC is actually on but the telemetry agent happens to be stopped.
+#define LINUX_LAN_IP "192.168.1.50"
+#define LINUX_SSH_PORT 22
+
 // ===== Relay =====
 // Recommended wiring: relay dry-contact COM + NO in parallel with the motherboard
 // POWER SW pins. Do NOT switch 220V mains power with this firmware.
