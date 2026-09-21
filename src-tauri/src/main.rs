@@ -4,7 +4,6 @@
 mod agent_client;
 mod config;
 mod diagnostics;
-mod ssh;
 mod status;
 mod tests;
 mod tray;
