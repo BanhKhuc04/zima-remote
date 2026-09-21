@@ -91,6 +91,8 @@ Thu muc:
     DISCORD_ALLOWED_USER_ID
     LINUX_AGENT_URL
     LINUX_AGENT_TOKEN
+    LINUX_LAN_IP
+    LINUX_SSH_PORT
 
 6. Upload sketch.
 
@@ -98,9 +100,12 @@ File config.h da duoc .gitignore de tranh commit token/mat khau len GitHub.
 
 ### Linux Agent URL
 
-ESP8266 khong chay Tailscale. LINUX_AGENT_URL nen la IP LAN co dinh cua PC, vi du:
+ESP8266 khong chay Tailscale. LINUX_AGENT_URL va LINUX_LAN_IP nen tro toi IP LAN co dinh cua PC, vi du:
 
-    http://192.168.1.50:8090
+    LINUX_AGENT_URL = http://192.168.1.50:8090
+    LINUX_LAN_IP = 192.168.1.50
+
+ESP cung kiem tra TCP/22 nhu mot lop du phong. Neu Linux Agent bi dung nhung SSH van con song, lenh !server on se bi huy thay vi bam nham POWER SW tren mot may dang bat.
 
 Nen dat DHCP Reservation trong router cho MAC cua PC thay vi hard-code static IP trong Debian.
 
