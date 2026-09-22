@@ -72,7 +72,7 @@ impl Default for AppConfig {
 
 fn get_config_path() -> PathBuf {
     let mut path = dirs_next::config_dir().unwrap_or_else(|| PathBuf::from("."));
-    path.push("ZimaRemote");
+    path.push("PCStatus");
     fs::create_dir_all(&path).ok();
     path.push("config.json");
     path
@@ -91,6 +91,7 @@ pub fn load_app_config() -> AppConfig {
     // Check legacy config paths if main config doesn't exist
     if let Some(base) = dirs_next::config_dir() {
         let legacy_paths = vec![
+            base.join("ZimaRemote").join("config.json"),
             base.join("zima_remote").join("config.json"),
             base.join("Zima").join("config.json"),
         ];
