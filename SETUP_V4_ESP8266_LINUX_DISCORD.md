@@ -5,11 +5,13 @@
 Zima Remote v4 tach thanh 3 thanh phan:
 
 1. **ESP8266 controller (luon bat)**
-   - Ket noi Wi-Fi va Discord.
-   - Nhan lenh trong 1 kenh Discord.
+   - Ket noi Wi-Fi va Discord Gateway bang WebSocket.
+   - Tu dang ky slash command /server vao Discord server.
+   - Nhan lenh gan nhu tuc thoi, khong poll tin nhan 5 giay/lần.
    - Dieu khien relay nhu nut POWER SW vat ly.
    - Goi Linux Agent de tat/reboot an toan.
    - Thong bao server online/offline va canh bao nhiet do.
+   - Van dieu khien duoc /server on khi Linux PC dang tat, vi ESP8266 luon bat.
 
 2. **Linux Agent tren may PC**
    - Chay bang systemd, port mac dinh 8090.
@@ -74,8 +76,9 @@ Thu muc:
 ### Arduino IDE
 
 1. Cai ESP8266 board support.
-2. Cai ArduinoJson 6.x.
-3. Chon dung board cua ban:
+2. Cai **ArduinoJson 7.x**.
+3. Cai **WebSockets by Markus Sattler / Links2004** (thu vien arduinoWebSockets).
+4. Chon dung board cua ban:
    - NodeMCU 1.0 (ESP-12E), hoac
    - LOLIN(WEMOS) D1 R2 & mini.
 4. Copy:
@@ -86,6 +89,8 @@ Thu muc:
 
     WIFI_SSID
     WIFI_PASSWORD
+    DISCORD_APPLICATION_ID
+    DISCORD_GUILD_ID
     DISCORD_BOT_TOKEN
     DISCORD_CHANNEL_ID
     DISCORD_ALLOWED_USER_ID
@@ -105,7 +110,7 @@ ESP8266 khong chay Tailscale. LINUX_AGENT_URL va LINUX_LAN_IP nen tro toi IP LAN
     LINUX_AGENT_URL = http://192.168.1.50:8090
     LINUX_LAN_IP = 192.168.1.50
 
-ESP cung kiem tra TCP/22 nhu mot lop du phong. Neu Linux Agent bi dung nhung SSH van con song, lenh !server on se bi huy thay vi bam nham POWER SW tren mot may dang bat.
+ESP cung kiem tra TCP/22 nhu mot lop du phong. Neu Linux Agent bi dung nhung SSH van con song, lenh /server on se bi huy thay vi bam nham POWER SW tren mot may dang bat.
 
 Nen dat DHCP Reservation trong router cho MAC cua PC thay vi hard-code static IP trong Debian.
 
@@ -116,31 +121,34 @@ Nen dat DHCP Reservation trong router cho MAC cua PC thay vi hard-code static IP
 1. Vao Discord Developer Portal.
 2. Tao Application -> Bot.
 3. Tao/reset Bot Token.
-4. Neu Discord yeu cau, bat Message Content Intent.
-5. Invite bot vao server voi quyen toi thieu:
+4. Khong can Message Content Intent cho slash command.
+5. Invite bot vao server voi scopes:
+   - bot
+   - applications.commands
+6. Quyen bot toi thieu:
    - View Channel
    - Send Messages
-   - Read Message History
-6. Tao mot channel rieng, vi du #server-control.
-7. Bat Developer Mode trong Discord.
-8. Copy:
+7. Tao mot channel rieng, vi du #server-control.
+8. Bat Developer Mode trong Discord va copy:
+   - Server ID (Guild ID);
    - Channel ID;
    - User ID cua ban.
+9. Trong Developer Portal -> General Information, copy Application ID.
 
-Gan hai ID nay vao config.h.
+Gan cac gia tri tren vao config.h.
 
-Firmware chi chap nhan lenh power tu DISCORD_ALLOWED_USER_ID.
+Firmware chi chap nhan lenh tu DISCORD_ALLOWED_USER_ID va chi trong DISCORD_CHANNEL_ID.
+Moi lan ESP khoi dong, firmware dong bo slash command vao dung Discord server (guild), nen lenh thuong xuat hien sau vai giay.
 
 ### Lenh
 
-Voi prefix mac dinh !server:
+Discord se goi y slash command:
 
-    !server status
-    !server on
-    !server off
-    !server restart
-    !server forceoff
-    !server help
+    /server status
+    /server on
+    /server off
+    /server restart
+    /server forceoff
 
 Y nghia:
 - status: ESP + Linux + nhiet do/RAM/disk.
@@ -276,7 +284,7 @@ Discord -> ESP8266 -> POST /v1/system/poweroff -> Linux systemd tat may an toan 
 
 ### May treo
 
-Discord -> !server forceoff -> ESP giu relay 6 giay -> motherboard force power off.
+Discord -> /server forceoff -> ESP giu relay 6 giay -> motherboard force power off.
 
 ---
 
@@ -299,10 +307,10 @@ Firmware ESP8266 hien dung TLS encryption nhung bo qua certificate verification 
 1. ESP cap nguon rieng, PC tat van con online.
 2. Relay o trang thai OFF sau boot ESP.
 3. COM/NO dau dung vao PWR_SW, khong phai 220V.
-4. Test !server status.
-5. Khi PC dang tat, test !server on.
+4. Test /server status.
+5. Khi PC dang tat, test /server on.
 6. Cho Linux boot, kiem tra Discord bao ONLINE.
-7. Test !server off va dam bao Linux shutdown sach.
+7. Test /server off va dam bao Linux shutdown sach.
 8. Chi test forceoff khi da hieu ro no la tat cuong buc.
 
 ---
@@ -322,13 +330,23 @@ Firmware ESP8266 hien dung TLS encryption nhung bo qua certificate verification 
 
     curl http://LINUX_IP:8090/v1/status
 
-### Discord bot khong doc lenh
+### Slash command /server khong xuat hien
+
+- Kiem tra DISCORD_APPLICATION_ID.
+- Kiem tra DISCORD_GUILD_ID.
+- Kiem tra bot da duoc invite voi scope applications.commands.
+- Kiem tra Bot Token.
+- Mo Serial Monitor 115200, tim:
+  - [DISCORD] slash commands synced
+  - [GATEWAY] READY - bot online
+
+### /server co hien nhung khong phan hoi
 
 - Kiem tra DISCORD_CHANNEL_ID.
 - Kiem tra DISCORD_ALLOWED_USER_ID.
-- Kiem tra bot co View Channel + Read Message History.
-- Kiem tra token.
-- Neu can, bat Message Content Intent.
+- Kiem tra bot co View Channel + Send Messages.
+- Kiem tra ESP8266 van ket noi Discord Gateway.
+- Mo http://IP_ESP/status va xem gateway_ready=true.
 
 ### Relay bam nhung PC khong bat
 
