@@ -135,7 +135,7 @@ pub fn show_and_activate_popup(window: &WebviewWindow) {
     let _ = window.emit("popup-opening", ());
 
     let window_clone1 = window.clone();
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         // Secondary focus call after 120ms to compensate for Windows Explorer closing hidden-icons panel
         tokio::time::sleep(Duration::from_millis(120)).await;
         bring_to_foreground_win32(&window_clone1);
@@ -143,7 +143,7 @@ pub fn show_and_activate_popup(window: &WebviewWindow) {
     });
 
     let window_clone2 = window.clone();
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(400)).await;
         if FLYOUT_STATE.load(Ordering::SeqCst) == STATE_SHOWING {
             FLYOUT_STATE.store(STATE_VISIBLE, Ordering::SeqCst);
@@ -213,8 +213,6 @@ pub fn toggle_popup_window(app: &AppHandle) {
 pub fn setup_system_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let open_item = MenuItem::with_id(app, "open", "Mở Zima Remote", true, None::<&str>)?;
     let check_item = MenuItem::with_id(app, "check", "Kiểm tra trạng thái", true, None::<&str>)?;
-    let wake_item = MenuItem::with_id(app, "wake", "Bật Home Server", true, None::<&str>)?;
-    let dashboard_item = MenuItem::with_id(app, "dashboard", "Mở Dashboard", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Cài đặt", true, None::<&str>)?;
     let diagnostics_item = MenuItem::with_id(app, "diagnostics", "Chẩn đoán", true, None::<&str>)?;
     let exit_item = MenuItem::with_id(app, "exit", "Thoát hoàn toàn", true, None::<&str>)?;
@@ -224,8 +222,6 @@ pub fn setup_system_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Erro
         &[
             &open_item,
             &check_item,
-            &wake_item,
-            &dashboard_item,
             &settings_item,
             &diagnostics_item,
             &exit_item,
@@ -252,12 +248,6 @@ pub fn setup_system_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Erro
                         show_and_activate_popup(&window);
                         let _ = app.emit("tray-check", ());
                     }
-                }
-                "wake" => {
-                    let _ = app.emit("tray-wake", ());
-                }
-                "dashboard" => {
-                    let _ = app.emit("tray-dashboard", ());
                 }
                 "settings" => {
                     if let Some(window) = app.get_webview_window("main") {

@@ -1,182 +1,125 @@
 use crate::agent_client::check_agent_status;
-use crate::ssh::execute_ssh_cmd;
 use serde::Serialize;
 use std::net::{SocketAddr, TcpStream};
 use std::time::{Duration, Instant};
-use tokio::time::timeout;
 
 #[derive(Debug, Serialize)]
 pub struct CombinedStatusResult {
     pub online: bool,
-    pub active_mode: String, // "LOCAL", "REMOTE", "UNREACHABLE"
+    pub active_mode: String,
     pub latency_ms: Option<u64>,
     pub uptime: Option<String>,
+    pub uptime_seconds: Option<u64>,
+    pub hostname: Option<String>,
+    pub cpu_temp_c: Option<f32>,
+    pub load_1: Option<f32>,
+    pub memory_total_mb: Option<u64>,
+    pub memory_used_mb: Option<u64>,
+    pub disk_total_gb: Option<f64>,
+    pub disk_used_gb: Option<f64>,
+    pub ip_addresses: Vec<String>,
     pub error_message: Option<String>,
+}
+
+fn format_uptime(seconds: u64) -> String {
+    let days = seconds / 86_400;
+    let hours = (seconds % 86_400) / 3_600;
+    let minutes = (seconds % 3_600) / 60;
+
+    if days > 0 {
+        format!("{}d {}h {}m", days, hours, minutes)
+    } else if hours > 0 {
+        format!("{}h {}m", hours, minutes)
+    } else {
+        format!("{}m", minutes)
+    }
 }
 
 pub async fn evaluate_status(
     connection_mode: &str,
     ip: &str,
-    ssh_user: &str,
+    _ssh_user: &str,
     ssh_port: u16,
-    ssh_key_path: &str,
+    _ssh_key_path: &str,
     agent_url: &str,
-    zerotier_ip: &str,
+    _zerotier_ip: &str,
 ) -> CombinedStatusResult {
-    let mode_upper = connection_mode.to_uppercase();
+    let mode = connection_mode.to_uppercase();
 
-    match mode_upper.as_str() {
-        "LOCAL" => probe_local_lan(ip, ssh_user, ssh_port, ssh_key_path).await,
-        "REMOTE" => {
-            probe_remote_agent(agent_url, zerotier_ip, ssh_user, ssh_port, ssh_key_path).await
-        }
-        _ => {
-            // AUTO Mode: Probe Local LAN first, fallback to Remote Agent
-            let local_res = probe_local_lan(ip, ssh_user, ssh_port, ssh_key_path).await;
-            if local_res.online {
-                local_res
-            } else if !agent_url.trim().is_empty() {
-                let remote_res =
-                    probe_remote_agent(agent_url, zerotier_ip, ssh_user, ssh_port, ssh_key_path)
-                        .await;
-                if remote_res.active_mode == "REMOTE" {
-                    remote_res
-                } else {
-                    local_res
-                }
-            } else {
-                local_res
-            }
+    if mode != "LOCAL" && !agent_url.trim().is_empty() {
+        let remote = probe_agent(agent_url).await;
+        if remote.online || mode == "REMOTE" {
+            return remote;
         }
     }
+
+    probe_local_lan(ip, ssh_port).await
 }
 
-async fn probe_local_lan(
-    ip: &str,
-    ssh_user: &str,
-    ssh_port: u16,
-    ssh_key_path: &str,
-) -> CombinedStatusResult {
-    let start = Instant::now();
-    let timeout_dur = Duration::from_millis(1500);
-
-    let http_addr: Option<SocketAddr> = format!("{}:80", ip).parse().ok();
-    let ssh_addr: Option<SocketAddr> = format!("{}:{}", ip, ssh_port).parse().ok();
-
-    let mut is_online = false;
-    let mut measured_latency: Option<u64> = None;
-
-    if let Some(addr) = http_addr {
-        let res = tokio::task::spawn_blocking(move || {
-            TcpStream::connect_timeout(&addr, timeout_dur).is_ok()
-        })
-        .await;
-        if let Ok(true) = res {
-            is_online = true;
-            measured_latency = Some(start.elapsed().as_millis() as u64);
-        }
-    }
-
-    if !is_online {
-        if let Some(addr) = ssh_addr {
-            let res = tokio::task::spawn_blocking(move || {
-                TcpStream::connect_timeout(&addr, timeout_dur).is_ok()
-            })
-            .await;
-            if let Ok(true) = res {
-                is_online = true;
-                measured_latency = Some(start.elapsed().as_millis() as u64);
-            }
-        }
-    }
-
-    if !is_online {
-        return CombinedStatusResult {
-            online: false,
-            active_mode: "UNREACHABLE".into(),
-            latency_ms: None,
-            uptime: None,
-            error_message: None,
-        };
-    }
-
-    // Optional Uptime Fetch
-    let uptime_res = timeout(
-        Duration::from_secs(2),
-        execute_ssh_cmd(ip, ssh_user, ssh_port, ssh_key_path, "uptime -p", 2),
-    )
-    .await;
-
-    let uptime_str = match uptime_res {
-        Ok(Ok(stdout)) if !stdout.is_empty() => Some(stdout),
-        _ => None,
-    };
-
-    CombinedStatusResult {
-        online: true,
-        active_mode: "LOCAL".into(),
-        latency_ms: measured_latency,
-        uptime: uptime_str,
-        error_message: None,
-    }
-}
-
-async fn probe_remote_agent(
-    agent_url: &str,
-    zerotier_ip: &str,
-    ssh_user: &str,
-    ssh_port: u16,
-    ssh_key_path: &str,
-) -> CombinedStatusResult {
-    if agent_url.trim().is_empty() {
-        return CombinedStatusResult {
-            online: false,
-            active_mode: "UNREACHABLE".into(),
-            latency_ms: None,
-            uptime: None,
-            error_message: Some("Chưa cấu hình URL Orange Pi Agent".into()),
-        };
-    }
-
+async fn probe_agent(agent_url: &str) -> CombinedStatusResult {
     match check_agent_status(agent_url).await {
-        Ok(agent_res) => {
-            let mut uptime_str: Option<String> = None;
-
-            // If ZimaOS ZeroTier IP configured and online, try fetching uptime
-            if agent_res.online && !zerotier_ip.trim().is_empty() {
-                let uptime_res = timeout(
-                    Duration::from_secs(2),
-                    execute_ssh_cmd(
-                        zerotier_ip,
-                        ssh_user,
-                        ssh_port,
-                        ssh_key_path,
-                        "uptime -p",
-                        2,
-                    ),
-                )
-                .await;
-                if let Ok(Ok(stdout)) = uptime_res {
-                    if !stdout.is_empty() {
-                        uptime_str = Some(stdout);
-                    }
-                }
-            }
-
-            CombinedStatusResult {
-                online: agent_res.online,
-                active_mode: "REMOTE".into(),
-                latency_ms: agent_res.latency_ms,
-                uptime: uptime_str,
-                error_message: None,
-            }
-        }
+        Ok(status) => CombinedStatusResult {
+            online: status.online,
+            active_mode: "REMOTE".into(),
+            latency_ms: status.latency_ms,
+            uptime: Some(format_uptime(status.uptime_seconds)),
+            uptime_seconds: Some(status.uptime_seconds),
+            hostname: Some(status.hostname),
+            cpu_temp_c: status.cpu_temp_c,
+            load_1: status.load_1,
+            memory_total_mb: status.memory_total_mb,
+            memory_used_mb: status.memory_used_mb,
+            disk_total_gb: status.disk_total_gb,
+            disk_used_gb: status.disk_used_gb,
+            ip_addresses: status.ip_addresses,
+            error_message: None,
+        },
         Err(err) => CombinedStatusResult {
             online: false,
             active_mode: "UNREACHABLE".into(),
             latency_ms: None,
             uptime: None,
+            uptime_seconds: None,
+            hostname: None,
+            cpu_temp_c: None,
+            load_1: None,
+            memory_total_mb: None,
+            memory_used_mb: None,
+            disk_total_gb: None,
+            disk_used_gb: None,
+            ip_addresses: Vec::new(),
             error_message: Some(err),
         },
+    }
+}
+
+async fn probe_local_lan(ip: &str, ssh_port: u16) -> CombinedStatusResult {
+    let start = Instant::now();
+    let timeout_dur = Duration::from_millis(1200);
+    let ssh_addr: Option<SocketAddr> = format!("{}:{}", ip, ssh_port).parse().ok();
+
+    let online = if let Some(addr) = ssh_addr {
+        tokio::task::spawn_blocking(move || TcpStream::connect_timeout(&addr, timeout_dur).is_ok())
+            .await
+            .unwrap_or(false)
+    } else {
+        false
+    };
+
+    CombinedStatusResult {
+        online,
+        active_mode: if online { "LOCAL".into() } else { "UNREACHABLE".into() },
+        latency_ms: online.then(|| start.elapsed().as_millis() as u64),
+        uptime: None,
+        uptime_seconds: None,
+        hostname: None,
+        cpu_temp_c: None,
+        load_1: None,
+        memory_total_mb: None,
+        memory_used_mb: None,
+        disk_total_gb: None,
+        disk_used_gb: None,
+        ip_addresses: Vec::new(),
+        error_message: None,
     }
 }

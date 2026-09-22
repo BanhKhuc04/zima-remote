@@ -38,3 +38,6 @@ id_ed25519
 .idea/
 .DS_Store
 Thumbs.db
+
+# ESP8266 local secrets
+esp8266/config.h
