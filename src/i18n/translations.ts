@@ -1,6 +1,6 @@
 export const translations = {
   vi: {
-    appTitle: 'ZIMA REMOTE',
+    appTitle: 'PC STATUS',
     subtitle: 'Điều khiển Máy chủ Cục bộ',
     serverName: 'Tên máy chủ',
     hostname: 'Hostname',
@@ -40,9 +40,9 @@ export const translations = {
 
     // Confirmations
     confirmShutdownTitle: 'Xác Nhận Tắt Nguồn Server',
-    confirmShutdownMessage: 'Bạn có chắc chắn muốn tắt máy chủ Home Server (ZimaOS) qua lệnh SSH không?',
+    confirmShutdownMessage: 'Bạn có chắc chắn muốn tắt máy chủ Home Server (Linux PC) qua lệnh SSH không?',
     confirmRestartTitle: 'Xác Nhận Khởi Động Lại',
-    confirmRestartMessage: 'Bạn có chắc chắn muốn khởi động lại máy chủ ZimaOS không? Server sẽ ngắt kết nối tạm thời.',
+    confirmRestartMessage: 'Bạn có chắc chắn muốn khởi động lại máy chủ Linux PC không? Server sẽ ngắt kết nối tạm thời.',
     confirmActionBtn: 'Xác Nhận',
 
     // Details
@@ -50,14 +50,14 @@ export const translations = {
     lastChecked: 'Kiểm tra lúc',
     uptime: 'Thời gian hoạt động',
     connectionSecured: 'Kết nối mạng nội bộ LAN an toàn (No Cloud)',
-    version: 'Phiên bản 1.0.0',
+    version: 'Phiên bản 3.1.0',
 
     // Toast Messages
     magicPacketSent: 'Đã gửi Magic Packet tới máy chủ thành công!',
     wakingUpWaiting: 'Đang gửi tín hiệu bật máy, vui lòng chờ server khởi động (tối đa 90s)...',
     serverNowOnline: 'Máy chủ đã trực tuyến (ONLINE)!',
     serverWakeTimeout: 'Không thể xác nhận máy chủ đã bật sau 90 giây.',
-    shutdownSent: 'Đã gửi lệnh tắt nguồn tới ZimaOS thành công.',
+    shutdownSent: 'Đã gửi lệnh tắt nguồn tới Linux PC thành công.',
     restartSent: 'Đã gửi lệnh khởi động lại. Đang theo dõi quá trình restart...',
     sshError: 'Lỗi khi kết nối hoặc thực thi qua SSH: ',
     settingsSaved: 'Đã lưu cấu hình cài đặt!',
@@ -65,7 +65,7 @@ export const translations = {
     connectionFailed: 'Không thể kết nối tới server (TCP/HTTP timeout).',
   },
   en: {
-    appTitle: 'ZIMA REMOTE',
+    appTitle: 'PC STATUS',
     subtitle: 'Local Server Control',
     serverName: 'Server Name',
     hostname: 'Hostname',
@@ -105,9 +105,9 @@ export const translations = {
 
     // Confirmations
     confirmShutdownTitle: 'Confirm Power Off',
-    confirmShutdownMessage: 'Are you sure you want to shut down Home Server (ZimaOS) via SSH?',
+    confirmShutdownMessage: 'Are you sure you want to shut down Home Server (Linux PC) via SSH?',
     confirmRestartTitle: 'Confirm Restart',
-    confirmRestartMessage: 'Are you sure you want to restart ZimaOS? Connection will temporarily disconnect.',
+    confirmRestartMessage: 'Are you sure you want to restart Linux PC? Connection will temporarily disconnect.',
     confirmActionBtn: 'Confirm',
 
     // Details
@@ -115,14 +115,14 @@ export const translations = {
     lastChecked: 'Last checked',
     uptime: 'Uptime',
     connectionSecured: 'Connection secured locally (No Cloud Required)',
-    version: 'Version 1.0.0',
+    version: 'Version 3.1.0',
 
     // Toast Messages
     magicPacketSent: 'Magic Packet sent successfully!',
     wakingUpWaiting: 'Wake signal sent. Waiting for server to boot (up to 90s)...',
     serverNowOnline: 'Server is now ONLINE!',
     serverWakeTimeout: 'Server did not respond within 90 seconds.',
-    shutdownSent: 'Shutdown command accepted by ZimaOS.',
+    shutdownSent: 'Shutdown command accepted by Linux PC.',
     restartSent: 'Restart command accepted. Monitoring reboot progress...',
     sshError: 'SSH connection or execution failed: ',
     settingsSaved: 'Settings saved successfully!',
