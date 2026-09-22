@@ -211,7 +211,7 @@ pub fn toggle_popup_window(app: &AppHandle) {
 }
 
 pub fn setup_system_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    let open_item = MenuItem::with_id(app, "open", "Mở Zima Remote", true, None::<&str>)?;
+    let open_item = MenuItem::with_id(app, "open", "Mở PC Status", true, None::<&str>)?;
     let check_item = MenuItem::with_id(app, "check", "Kiểm tra trạng thái", true, None::<&str>)?;
     let wake_item = MenuItem::with_id(app, "wake", "Bật Home Server", true, None::<&str>)?;
     let dashboard_item = MenuItem::with_id(app, "dashboard", "Mở Dashboard", true, None::<&str>)?;
@@ -233,7 +233,7 @@ pub fn setup_system_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Erro
     )?;
 
     let mut tray_builder = TrayIconBuilder::with_id("zima-remote-tray")
-        .tooltip("Zima Remote")
+        .tooltip("PC Status by vanhkhuc.dev")
         .menu(&menu);
 
     if let Some(icon) = app.default_window_icon() {
