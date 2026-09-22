@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/esp8266-discord-controller
+      - feature/discord-linux-hub
   pull_request:
 
 jobs:
@@ -38,3 +39,10 @@ jobs:
       - run: npm run build
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  linux-pc-status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m py_compile linux-agent/pc_status_agent.py
+      - run: bash -n scripts/install-pc-status-agent.sh
