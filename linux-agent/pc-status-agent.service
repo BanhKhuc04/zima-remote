@@ -1,0 +1,25 @@
+[Unit]
+Description=PC Status Linux Agent
+Wants=network-online.target graphical.target
+After=network-online.target display-manager.service
+Before=shutdown.target reboot.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/etc/pc-status/agent.env
+ExecStart=/usr/bin/python3 /opt/pc-status/pc_status_agent.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=10
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
