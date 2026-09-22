@@ -53,8 +53,8 @@ export const FlyoutHeader: React.FC<FlyoutHeaderProps> = ({
           className="brand-logo-img"
         />
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '16px', fontWeight: 650, lineHeight: 1.1, color: 'var(--text)' }}>Zima Remote</span>
-          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--muted)', letterSpacing: '0.01em' }}>by VanhKhuc · v3.0.0</span>
+          <span style={{ fontSize: '16px', fontWeight: 650, lineHeight: 1.1, color: 'var(--text)' }}>PC Status</span>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--muted)', letterSpacing: '0.01em' }}>by vanhkhuc.dev · v3.1.0</span>
         </div>
       </div>
 
