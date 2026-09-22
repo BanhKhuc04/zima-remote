@@ -152,6 +152,10 @@ bool registerSlashCommands() {
   addSubcommand("off", "Tat Linux an toan");
   addSubcommand("restart", "Khoi dong lai Linux");
   addSubcommand("forceoff", "Giu nut nguon de tat cuong buc");
+  addSubcommand("screenshot", "Chup man hinh Linux va gui vao Discord");
+  addSubcommand("report", "Gui bao cao PC vao kenh Discord");
+  addSubcommand("display-on", "Bat man hinh Linux");
+  addSubcommand("display-off", "Tat man hinh Linux");
 
   String body;
   serializeJson(doc, body);
@@ -225,16 +229,16 @@ bool pcProbablyOnline() {
   return linuxTcpReachable();
 }
 
-bool linuxPostAction(const String& action) {
+bool linuxPostPath(const String& path, unsigned long timeoutMs = 5000) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
   WiFiClient client;
   HTTPClient http;
-  String url = String(LINUX_AGENT_URL) + "/v1/system/" + action;
+  String url = String(LINUX_AGENT_URL) + path;
 
   if (!http.begin(client, url)) return false;
 
-  http.setTimeout(2200);
+  http.setTimeout(timeoutMs);
   http.addHeader("Authorization", "Bearer " + String(LINUX_AGENT_TOKEN));
   http.addHeader("Content-Type", "application/json");
 
@@ -242,8 +246,12 @@ bool linuxPostAction(const String& action) {
   String response = http.getString();
   http.end();
 
-  logLine("[LINUX] POST " + action + " -> " + String(code));
+  logLine("[LINUX] POST " + path + " -> " + String(code));
   return code == 200 || code == 202;
+}
+
+bool linuxPostAction(const String& action) {
+  return linuxPostPath("/v1/system/" + action, 3000);
 }
 
 String formatUptime(unsigned long seconds) {
@@ -415,6 +423,50 @@ void handleServerInteraction(JsonObject interaction) {
       "Da giu POWER SW " + String(FORCE_OFF_HOLD_MS / 1000.0f, 1)
         + " giay. Chi dung forceoff khi may bi treo."
     );
+    return;
+  }
+
+  if (action == "screenshot") {
+    ServerStatus status;
+    if (!linuxGetStatus(status)) {
+      respondInteraction(interactionId, interactionToken, "Linux agent dang offline.");
+      return;
+    }
+    bool ok = linuxPostPath("/v1/discord/screenshot", 15000);
+    respondInteraction(
+      interactionId,
+      interactionToken,
+      ok ? "Da yeu cau chup man hinh. Anh se duoc gui vao kenh nay."
+         : "Khong chup duoc man hinh. Kiem tra Linux agent/log."
+    );
+    return;
+  }
+
+  if (action == "report") {
+    ServerStatus status;
+    if (!linuxGetStatus(status)) {
+      respondInteraction(interactionId, interactionToken, "Linux agent dang offline.");
+      return;
+    }
+    bool ok = linuxPostPath("/v1/discord/status", 6000);
+    respondInteraction(
+      interactionId,
+      interactionToken,
+      ok ? "Da gui bao cao PC vao kenh Discord."
+         : "Gui bao cao that bai."
+    );
+    return;
+  }
+
+  if (action == "display-on") {
+    bool ok = linuxPostPath("/v1/display/on", 5000);
+    respondInteraction(interactionId, interactionToken, ok ? "Da bat man hinh." : "Bat man hinh that bai.");
+    return;
+  }
+
+  if (action == "display-off") {
+    bool ok = linuxPostPath("/v1/display/off", 5000);
+    respondInteraction(interactionId, interactionToken, ok ? "Da tat man hinh." : "Tat man hinh that bai.");
     return;
   }
 
@@ -637,7 +689,7 @@ void setup() {
 
   Serial.println();
   Serial.println("====================================");
-  Serial.println(" Zima Remote ESP8266 v4.1 Gateway");
+  Serial.println(" PC Status ESP8266 v5 Discord Hub");
   Serial.println("====================================");
 
   digitalWrite(RELAY_PIN, relayLevel(false));
@@ -651,7 +703,7 @@ void setup() {
   startDiscordGateway();
 
   discordSendChannelMessage(
-    "Zima Remote ESP8266 started at " + WiFi.localIP().toString()
+    "PC Status ESP8266 started at " + WiFi.localIP().toString()
       + ". Slash command: /server."
   );
 }
