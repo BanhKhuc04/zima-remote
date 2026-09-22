@@ -1,80 +1,122 @@
-# Zima Remote v4
+# PC Status v5 - Discord + ESP8266 + Linux
 
-Zima Remote v4 is a lightweight remote status and power-management stack for a home Linux PC.
+PC Status v5 bo desktop app khoi luong dieu khien chinh. Discord tro thanh trung tam quan ly mot Linux PC.
 
 ## Architecture
 
-- **ESP8266 + relay**: always-on physical power controller and Discord Gateway client.
-- **Discord**: native slash-command control/status channel.
-- **Linux Agent**: telemetry and graceful system actions.
-- **Windows Tauri app**: status-only desktop client.
-- **Tailscale**: recommended private remote path from laptop to Linux.
+```text
+Discord #pc-status
+       |
+       | /server ...
+       v
+ESP8266 (always on)
+       |---------------- Relay COM/NO -> motherboard POWER SW
+       |
+       +---- HTTP LAN + Bearer token ----> Linux Agent
+                                            |
+                                            +-- status / telemetry
+                                            +-- graceful shutdown / reboot
+                                            +-- screenshot XFCE
+                                            +-- display on/off
+                                            +-- Discord webhook reports
+```
 
-The desktop app no longer performs Wake-on-LAN, shutdown, or reboot. All power operations are intentionally isolated to the ESP8266/Discord controller.
+ESP8266 van hoat dong khi PC Linux tat, nen `/server on` van bat duoc may.
 
 ## Discord commands
 
-The ESP8266 registers a native `/server` guild command and stays connected to the Discord Gateway over WebSocket:
+- `/server status` - ESP + Linux status
+- `/server on` - pulse POWER SW
+- `/server off` - graceful Linux shutdown
+- `/server restart` - graceful reboot
+- `/server forceoff` - hold POWER SW, chi dung khi treo
+- `/server screenshot` - chup desktop Linux va gui vao Discord
+- `/server report` - gui CPU/RAM/disk/load/uptime/IP vao Discord
+- `/server display-on` - bat man hinh
+- `/server display-off` - tat man hinh
 
-- `/server status`
-- `/server on`
-- `/server off`
-- `/server restart`
-- `/server forceoff`
+Chi `DISCORD_ALLOWED_USER_ID` duoc phep ra lenh va lenh chi duoc chap nhan trong `DISCORD_CHANNEL_ID`.
 
-This avoids REST message polling and keeps `/server on` available even while the Linux PC is powered off.
+## Automatic Discord notifications
 
-## Linux Agent
+Linux Agent:
 
-Endpoints:
+- bao khi agent/Linux boot;
+- chup anh sau boot;
+- gui status dinh ky;
+- chup man hinh dinh ky;
+- canh bao CPU qua nong;
+- canh bao disk sap day;
+- bao khi reboot/shutdown duoc yeu cau.
 
-- `GET /v1/health`
-- `GET /v1/status`
-- `GET /v1/server/status` (compatibility alias)
-- `POST /v1/system/poweroff` (Bearer token)
-- `POST /v1/system/reboot` (Bearer token)
+ESP8266:
 
-Telemetry includes hostname, uptime, CPU temperature when available, load, RAM, disk usage, and IP addresses.
+- bao Linux ONLINE/OFFLINE;
+- bao boot timeout;
+- van dieu khien relay khi Linux dang tat.
 
-## ESP8266
+## Linux setup
+
+```bash
+cd ~/zima-remote
+git fetch
+git switch feature/discord-linux-hub
+git pull
+chmod +x scripts/install-pc-status-agent.sh
+./scripts/install-pc-status-agent.sh
+```
+
+Installer hoi Discord Webhook URL, user XFCE, chu ky status va chu ky screenshot.
+
+Kiem tra:
+
+```bash
+systemctl status pc-status-agent
+journalctl -u pc-status-agent -f
+curl http://127.0.0.1:8090/v1/status
+```
+
+Cuoi installer se in `AGENT_BEARER_TOKEN`. Copy token nay vao ESP8266 `config.h`.
+
+## ESP8266 setup
 
 Firmware:
 
 `esp8266/zima_remote_esp8266.ino`
 
-Arduino dependencies:
-
-- ArduinoJson 7.x
-- WebSockets by Markus Sattler / Links2004
-
-Create your local secret config:
+Copy:
 
 `esp8266/config.example.h -> esp8266/config.h`
 
-`config.h` is ignored by Git.
+Arduino IDE libraries:
 
-## Linux install
+- ArduinoJson 7.x
+- WebSockets by Markus Sattler / Links2004
+- ESP8266 board core
 
-On Debian:
+Config can:
 
-```bash
-git clone https://github.com/BanhKhuc04/zima-remote.git
-cd zima-remote
-git checkout feature/esp8266-discord-controller
-chmod +x scripts/install-linux-agent.sh
-./scripts/install-linux-agent.sh
-```
+- Wi-Fi SSID/password
+- Discord Application ID
+- Discord Server/Guild ID
+- Discord Channel ID
+- Discord User ID cua ban
+- Discord Bot Token
+- Linux LAN IP/Agent URL
+- Linux Agent Token
 
-## Full setup
+## Discord webhook
 
-See:
-
-**SETUP_V4_ESP8266_LINUX_DISCORD.md**
-
-It covers relay wiring, Discord bot setup, ESP8266 flashing, Debian minimal installation, Tailscale, Linux Agent installation, desktop configuration, commands, and troubleshooting.
+Tao webhook trong cung kenh Discord dieu khien. Webhook chi de Linux gui anh/status/canh bao; slash command van do Discord Bot + ESP8266 xu ly.
 
 ## Safety
 
-Use the relay as a **dry-contact replacement for the motherboard POWER SW button**.
+Relay chi dung dry contact **COM + NO** dau song song voi motherboard **POWER SW**.
 
-Do **not** use this project to switch mains voltage directly.
+Khong dung firmware/relay nay de dong cat dien 220V/110V.
+
+Khong public port 8090 ra Internet. Agent action duoc bao ve bang Bearer token va nen chi dung trong LAN/Tailscale.
+
+## Full guide
+
+See `PC_STATUS_V5.md`.
